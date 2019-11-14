@@ -1,3 +1,41 @@
+
+# 源码分析
+
+## 文件结构
+
+``` bash
+├── src
+|  ├── applyMiddleware.ts
+|  ├── bindActionCreators.ts
+|  ├── combineReducers.ts
+|  ├── compose.ts
+|  ├── createStore.ts
+|  ├── index.ts
+|  ├── types
+|  |  ├── actions.ts
+|  |  ├── middleware.ts
+|  |  ├── reducers.ts
+|  |  └── store.ts
+|  └── utils
+|     ├── actionTypes.ts
+|     ├── isPlainObject.ts
+|     └── warning.ts
+```
+
+## 外部模块依赖
+
+请在： http://npm.broofa.com?q=redux 查看
+
+## 内部模块依赖
+
+![img](./inner.svg)
+  
+## 逐个文件分析
+
+
+
+---
+
 # <a href='http://redux.js.org'><img src='https://camo.githubusercontent.com/f28b5bc7822f1b7bb28a96d8d09e7d79169248fc/687474703a2f2f692e696d6775722e636f6d2f4a65567164514d2e706e67' height='60' alt='Redux Logo' aria-label='redux.js.org' /></a>
 
 Redux is a predictable state container for JavaScript apps.  
