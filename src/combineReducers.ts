@@ -136,8 +136,10 @@ export default function combineReducers<M extends ReducersMapObject<any, any>>(
   CombinedState<StateFromReducersMapObject<M>>,
   ActionFromReducersMapObject<M>
 >
+// 用来组合reducers的函数，用于reducers的入口文件中
 export default function combineReducers(reducers: ReducersMapObject) {
   const reducerKeys = Object.keys(reducers)
+  // 组合后的reducers
   const finalReducers: ReducersMapObject = {}
   for (let i = 0; i < reducerKeys.length; i++) {
     const key = reducerKeys[i]
@@ -163,11 +165,12 @@ export default function combineReducers(reducers: ReducersMapObject) {
 
   let shapeAssertionError: Error
   try {
+    // 校验一下
     assertReducerShape(finalReducers)
   } catch (e) {
     shapeAssertionError = e
   }
-
+  // 返回的大型reducer函数
   return function combination(
     state: StateFromReducersMapObject<typeof reducers> = {},
     action: AnyAction

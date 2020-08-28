@@ -1,4 +1,5 @@
 // functions
+// 对外暴露的创建store的方法
 import createStore from './createStore'
 import combineReducers from './combineReducers'
 import bindActionCreators from './bindActionCreators'

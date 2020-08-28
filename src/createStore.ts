@@ -38,12 +38,14 @@ import isPlainObject from './utils/isPlainObject'
  * @returns A Redux store that lets you read the state, dispatch actions
  * and subscribe to changes.
  */
+
 export default function createStore<
   S,
   A extends Action,
   Ext = {},
   StateExt = never
 >(
+  // 通过reducer来创建store
   reducer: Reducer<S, A>,
   enhancer?: StoreEnhancer<Ext, StateExt>
 ): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
@@ -82,7 +84,7 @@ export default function createStore<
     enhancer = preloadedState as StoreEnhancer<Ext, StateExt>
     preloadedState = undefined
   }
-
+  // 兼容enhancer
   if (typeof enhancer !== 'undefined') {
     if (typeof enhancer !== 'function') {
       throw new Error('Expected the enhancer to be a function.')
@@ -100,6 +102,7 @@ export default function createStore<
   let currentReducer = reducer
   let currentState = preloadedState as S
   let currentListeners: (() => void)[] | null = []
+  // 观察者列表
   let nextListeners = currentListeners
   let isDispatching = false
 
@@ -121,6 +124,7 @@ export default function createStore<
    *
    * @returns The current state tree of your application.
    */
+  // 获取state
   function getState(): S {
     if (isDispatching) {
       throw new Error(
@@ -156,6 +160,7 @@ export default function createStore<
    * @param listener A callback to be invoked on every dispatch.
    * @returns A function to remove this change listener.
    */
+  // store.subscribe方法
   function subscribe(listener: () => void) {
     if (typeof listener !== 'function') {
       throw new Error('Expected the listener to be a function.')
@@ -173,6 +178,7 @@ export default function createStore<
     let isSubscribed = true
 
     ensureCanMutateNextListeners()
+    // 将listener加入观察者列表
     nextListeners.push(listener)
 
     return function unsubscribe() {
@@ -190,6 +196,7 @@ export default function createStore<
       isSubscribed = false
 
       ensureCanMutateNextListeners()
+      // 去除观察者
       const index = nextListeners.indexOf(listener)
       nextListeners.splice(index, 1)
       currentListeners = null
@@ -221,6 +228,7 @@ export default function createStore<
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
+  //store.dispatch方法
   function dispatch(action: A) {
     if (!isPlainObject(action)) {
       throw new Error(
@@ -242,11 +250,13 @@ export default function createStore<
 
     try {
       isDispatching = true
+      // 通过传入的reducer来执行state和action
+      // dispatch是分发action，修改state的唯一手段
       currentState = currentReducer(currentState, action)
     } finally {
       isDispatching = false
     }
-
+    //然后依次触发所有的观察者
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
@@ -338,7 +348,7 @@ export default function createStore<
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
   dispatch({ type: ActionTypes.INIT } as A)
-
+  // 定义store
   const store = ({
     dispatch: dispatch as Dispatch<A>,
     subscribe,
