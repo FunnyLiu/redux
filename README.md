@@ -30,6 +30,8 @@
 ## 相关生态源码解析
 
 - [redux-thunk](https://github.com/FunnyLiu/redux-thunk/tree/readsource) - store.dispatch方法正常情况下，参数只能是对象，不能是函数，redux-thunk相关与给它套了一层函数，使其可以支持函数。
+- [redux-logger](https://github.com/FunnyLiu/redux-logger/tree/readsource) - 异常及日志输出中间件
+- [react-redux](https://github.com/FunnyLiu/react-redux/tree/readsource) - react和redux的衔接部分，提供Provider组件作为容器挂载store，提供connect方法包装各容器ui组件，从而进行state的联动。
   
 ## 功能点分析
 
