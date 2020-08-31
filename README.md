@@ -5,7 +5,7 @@
 
 ``` bash
 ├── src
-|  ├── applyMiddleware.ts
+|  ├── applyMiddleware.ts - 提供applyMiddleware方法
 |  ├── bindActionCreators.ts
 |  ├── combineReducers.ts - 提供combineReducers方法，用来组合reducers
 |  ├── compose.ts
@@ -27,6 +27,9 @@
 
 ![img](./inner.svg)
   
+## 相关生态源码解析
+
+- [redux-thunk](https://github.com/FunnyLiu/redux-thunk/tree/readsource) - store.dispatch方法正常情况下，参数只能是对象，不能是函数，redux-thunk相关与给它套了一层函数，使其可以支持函数。
   
 ## 功能点分析
 
@@ -202,8 +205,89 @@ export default function combineReducers(reducers: ReducersMapObject) {
   }
 }
 ```
+### applyMiddleware
 
+函数位于applyMiddleware.ts文件，用于配合中间件使用，比如：
 
+``` js
+import { createStore, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
+import rootReducer from './reducers/index';
+
+// Note: this API requires redux@>=3.1.0
+const store = createStore(rootReducer, applyMiddleware(thunk));
+```
+
+取逻辑主要是：
+
+``` js
+
+export default function applyMiddleware(
+  // 传入的中间件列表
+  ...middlewares: Middleware[]
+): StoreEnhancer<any> {
+  //提供applyMiddleware方法，
+  // 第一个参数createStore来自createStore.ts内函数
+  return (createStore: StoreCreator) => <S, A extends AnyAction>(
+    //reducer为外部传入的reducer集合
+    reducer: Reducer<S, A>,
+    ...args: any[]
+  ) => {
+    // 帮其执行createStore(reducer)的操作，
+    // 拿到store
+    const store = createStore(reducer, ...args)
+    let dispatch: Dispatch = () => {
+      throw new Error(
+        'Dispatching while constructing your middleware is not allowed. ' +
+          'Other middleware would not be applied to this dispatch.'
+      )
+    }
+
+    const middlewareAPI: MiddlewareAPI = {
+      getState: store.getState,
+      dispatch: (action, ...args) => dispatch(action, ...args)
+    }
+    // 给中间件函数传入参数
+    const chain = middlewares.map(middleware => middleware(middlewareAPI))
+    // 组合dispatch
+    dispatch = compose<typeof dispatch>(...chain)(store.dispatch)
+
+    return {
+      ...store,
+      // 用新的dispatch覆盖store原有的
+      dispatch
+    }
+  }
+}
+
+```
+
+然后由于其作为createStore的第二个参数传入，所以会走到enhancer的逻辑里，来返回store。
+
+``` js
+export default function createStore<
+  S,
+  A extends Action,
+  Ext = {},
+  StateExt = never
+>(
+  reducer: Reducer<S, A>,
+  preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>,
+  enhancer?: StoreEnhancer<Ext, StateExt>
+): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {
+  ///...
+
+  // 兼容enhancer
+  if (typeof enhancer !== 'undefined') {
+    if (typeof enhancer !== 'function') {
+      throw new Error('Expected the enhancer to be a function.')
+    }
+    //如果用enhancer，将createStore传入再调用
+    return enhancer(createStore)(reducer, preloadedState as PreloadedState<
+      S
+    >) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
+  }
+```
 
 ---
 

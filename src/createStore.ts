@@ -47,6 +47,14 @@ export default function createStore<
 >(
   // 通过reducer来创建store
   reducer: Reducer<S, A>,
+  // 一般是中间件增强函数，
+  //比如：
+// import { createStore, applyMiddleware } from 'redux';
+// import thunk from 'redux-thunk';
+// import rootReducer from './reducers/index';
+
+// // Note: this API requires redux@>=3.1.0
+// const store = createStore(rootReducer, applyMiddleware(thunk));
   enhancer?: StoreEnhancer<Ext, StateExt>
 ): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
 export default function createStore<
@@ -89,7 +97,7 @@ export default function createStore<
     if (typeof enhancer !== 'function') {
       throw new Error('Expected the enhancer to be a function.')
     }
-
+    //如果用enhancer，将createStore传入再调用
     return enhancer(createStore)(reducer, preloadedState as PreloadedState<
       S
     >) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext

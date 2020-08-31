@@ -53,12 +53,18 @@ export default function applyMiddleware<Ext, S = any>(
   ...middlewares: Middleware<any, S, any>[]
 ): StoreEnhancer<{ dispatch: Ext }>
 export default function applyMiddleware(
+  // 传入的中间件列表
   ...middlewares: Middleware[]
 ): StoreEnhancer<any> {
+  //提供applyMiddleware方法，
+  // 第一个参数createStore来自createStore.ts内函数
   return (createStore: StoreCreator) => <S, A extends AnyAction>(
+    //reducer为外部传入的reducer集合
     reducer: Reducer<S, A>,
     ...args: any[]
   ) => {
+    // 帮其执行createStore(reducer)的操作，
+    // 拿到store
     const store = createStore(reducer, ...args)
     let dispatch: Dispatch = () => {
       throw new Error(
@@ -71,11 +77,14 @@ export default function applyMiddleware(
       getState: store.getState,
       dispatch: (action, ...args) => dispatch(action, ...args)
     }
+    // 给中间件函数传入参数
     const chain = middlewares.map(middleware => middleware(middlewareAPI))
+    // 组合dispatch
     dispatch = compose<typeof dispatch>(...chain)(store.dispatch)
 
     return {
       ...store,
+      // 用新的dispatch覆盖store原有的
       dispatch
     }
   }
